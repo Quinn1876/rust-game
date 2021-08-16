@@ -4,6 +4,7 @@ use failure;
 use crate::render_gl::{ self, data, buffer, Viewport };
 use crate::resources::Resources;
 use crate::mvp_matrix::ModelViewProjectionMatrix;
+use crate::camera::Camera;
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
@@ -23,7 +24,7 @@ pub struct Triangle {
 }
 
 impl Triangle {
-    pub fn new(res: Resources, gl: &gl::Gl, viewport: &Viewport)
+    pub fn new(res: Resources, gl: &gl::Gl)
     -> Result<Triangle, failure::Error>
     {
 
@@ -63,13 +64,6 @@ impl Triangle {
 
         let mut mvp_matrix = ModelViewProjectionMatrix::new(
             &gl,
-            45.0 * glm::pi::<f32>() / 180.0,
-            viewport.h as f32 / viewport.w as f32,
-            0.1,
-            100.0,
-            glm::vec3(4.0, 3.0, 3.0),
-            glm::vec3(0.0, 0.0, 0.0),
-            glm::vec3(0.0, 1.0, 0.0)
         );
         mvp_matrix.register_with_program_and_uniform(program.id(), b"MVP\0");
 
@@ -81,7 +75,7 @@ impl Triangle {
         })
     }
 
-    pub fn render(&mut self, gl: &gl::Gl)
+    pub fn render(&mut self, gl: &gl::Gl, camera: &mut Camera)
     {
         // let fov = 45.0 * glm::pi::<f32>() / 180.0;
         // let aspect_ratio = viewport.h as f32/viewport.w as f32;
@@ -105,7 +99,7 @@ impl Triangle {
         self.program.set_used();
         self.vao.bind();
 
-        self.mvp_matrix.calculate_and_update_mvp();
+        self.mvp_matrix.calculate_and_update_mvp(camera);
 
 
         unsafe {

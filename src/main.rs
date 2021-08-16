@@ -16,6 +16,8 @@ extern crate nalgebra_glm as glm;
 pub mod render_gl;
 pub mod resources;
 pub mod mvp_matrix;
+pub mod glm_ext;
+pub mod camera;
 
 mod triangle;
 mod debug;
@@ -25,6 +27,7 @@ use std::path::Path;
 use resources::Resources;
 use render_gl::data;
 use debug::failure_to_string;
+use camera::Camera;
 
 const WINDOW_HEIGHT: u32 = 700;
 const WINDOW_WIDTH: u32 = 900;
@@ -77,7 +80,17 @@ fn run() -> Result<(), failure::Error> {
     viewport.set_used(&gl);
     color_buffer.set_used(&gl);
 
-    let mut triangle = triangle::Triangle::new(res, &gl, &viewport)?;
+    let mut camera = Camera::new(
+        45.0 * glm::pi::<f32>() / 180.0,
+        viewport.h as f32 / viewport.w as f32,
+        0.1,
+        100.0,
+        glm::vec3(4.0, 3.0, 3.0),
+        glm::vec3(0.0, 0.0, 0.0),
+        glm::vec3(0.0, 1.0, 0.0)
+    );
+
+    let mut triangle = triangle::Triangle::new(res, &gl)?;
 
     'main: loop {
         for event in event_pump.poll_iter() {
@@ -97,7 +110,7 @@ fn run() -> Result<(), failure::Error> {
 
         color_buffer.clear(&gl);
 
-        triangle.render(&gl);
+        triangle.render(&gl, &mut camera);
 
         window.gl_swap_window();
     }
